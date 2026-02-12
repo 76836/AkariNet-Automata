@@ -1,0 +1,203 @@
+atpk-name: demo
+atpk-description: Demonstration and testing automata for AkariNet
+
+!AUTOMATON
+name: about-akarinet-automata
+version: 1.0.0
+description: Provides information about the AkariNet automata system
+priority: 50
+respondsto: message_sent
+controls: say
+code>
+module.exports.default = {
+    setup() {
+        on('message_sent', (event) => {
+            const msg = event.message.toLowerCase();
+            
+            if (msg.includes('about akarinet automata') || msg.includes('about automata') || msg.includes('automata help')) {
+                say('AkariNet automatons are small programs that make up the functionality of AkariNet. The Automaton registry is a system that allows you to manage and control the behavior of these automatons. You can use the automaton registry to list, blacklist, install or remove, and manage the behavior of automatons. You can also use the automaton registry to view information about the automatons, such as their name, version, description, priority, and controls. This message was sent by the "about-akarinet-automata" automaton, you can easily view info about this automaton, and even disable it entirely, Its all up to you!');
+            }
+        });
+    },
+    
+    teardown() {
+        // Cleanup if needed
+    }
+};
+<code
+
+!AUTOMATON
+name: automaton-manager
+version: 1.0.0
+description: Manage running automata (list, info, shutdown, kill, restart)
+priority: 80
+respondsto: message_sent
+controls: say, automatonLoader
+code>
+module.exports.default = {
+    setup() {
+        on('message_sent', (event) => {
+            const msg = event.message.toLowerCase();
+            
+            // List all running automata
+            if (msg === 'list automata' || msg === 'automata list') {
+                if (typeof automatonLoader !== 'undefined') {
+                    const automata = automatonLoader.list();
+                    
+                    if (automata.length === 0) {
+                        say('No automata running');
+                    } else {
+                        say(`Running automata (${automata.length}):`);
+                        automata.forEach((name, i) => {
+                            setTimeout(() => say(`• ${name}`), (i + 1) * 100);
+                        });
+                    }
+                } else {
+                    say('Automaton loader not available');
+                }
+            }
+            
+            // Get info about a specific automaton
+            if (msg.startsWith('info ')) {
+                const name = msg.replace('info ', '').trim();
+                
+                if (typeof automatonLoader !== 'undefined') {
+                    const info = automatonLoader.info(name);
+                    
+                    if (info) {
+                        say(`Automaton: ${info.name}`);
+                        setTimeout(() => say(`Version: ${info.version}`), 100);
+                        setTimeout(() => say(`Description: ${info.description}`), 200);
+                        setTimeout(() => say(`Priority: ${info.priority}`), 300);
+                        if (info.respondsto.length > 0) {
+                            setTimeout(() => say(`Responds to: ${info.respondsto.join(', ')}`), 400);
+                        }
+                        if (info.controls.length > 0) {
+                            setTimeout(() => say(`Controls: ${info.controls.join(', ')}`), 500);
+                        }
+                    } else {
+                        say(`Automaton '${name}' not found`);
+                    }
+                } else {
+                    say('Automaton loader not available');
+                }
+            }
+            
+            // Shutdown an automaton
+            if (msg.startsWith('shutdown ')) {
+                const name = msg.replace('shutdown ', '').trim();
+                
+                if (typeof automatonLoader !== 'undefined') {
+                    const success = automatonLoader.shutdown(name);
+                    if (success) {
+                        say(`Automaton '${name}' shut down successfully`);
+                    } else {
+                        say(`Failed to shutdown '${name}' (not found or error)`);
+                    }
+                } else {
+                    say('Automaton loader not available');
+                }
+            }
+            
+            // Kill an automaton
+            if (msg.startsWith('kill ')) {
+                const name = msg.replace('kill ', '').trim();
+                
+                if (typeof automatonLoader !== 'undefined') {
+                    const success = automatonLoader.kill(name);
+                    if (success) {
+                        say(`Automaton '${name}' killed (forced removal)`);
+                    } else {
+                        say(`Failed to kill '${name}' (not found or error)`);
+                    }
+                } else {
+                    say('Automaton loader not available');
+                }
+            }
+            
+            // Restart an automaton
+            if (msg.startsWith('restart ')) {
+                const name = msg.replace('restart ', '').trim();
+                
+                if (typeof automatonLoader !== 'undefined') {
+                    say(`Restarting '${name}'...`);
+                    automatonLoader.restart(name).then(success => {
+                        if (success) {
+                            say(`Automaton '${name}' restarted successfully`);
+                        } else {
+                            say(`Failed to restart '${name}'`);
+                        }
+                    });
+                } else {
+                    say('Automaton loader not available');
+                }
+            }
+        });
+    }
+};
+<code
+
+!AUTOMATON
+name: notification-tester
+version: 1.0.0
+description: Tests notification system
+priority: 90
+respondsto: message_sent
+controls: showNotification
+code>
+module.exports.default = {
+    setup() {
+        on('message_sent', (event) => {
+            const msg = event.message.toLowerCase();
+            
+            if (msg === 'notify' || msg === 'notification') {
+                showNotification(
+                    'Test Notification',
+                    'This is a test notification from an AkariNet Automaton!',
+                    {
+                        borderColor: '#00d4ff',
+                        duration: 3000
+                    }
+                );
+                say('Notification sent!');
+            }
+        });
+    }
+};
+<code
+
+
+!AUTOMATON
+name: conflict-detector
+version: 1.0.0
+description: Detects and reports automata conflicts
+priority: 120
+respondsto: message_sent
+controls: say
+code>
+module.exports.default = {
+    setup() {
+        on('message_sent', (event) => {
+            if (event.message.toLowerCase() === 'conflicts') {
+                if (typeof automatonLoader !== 'undefined') {
+                    const conflicts = automatonLoader.getConflicts();
+                    
+                    if (conflicts.length === 0) {
+                        say('No conflicts detected! All automata are compatible.');
+                    } else {
+                        say(`Found ${conflicts.length} conflict(s):`);
+                        
+                        conflicts.forEach((c, i) => {
+                            setTimeout(() => {
+                                say(`${c.control} controlled by: ${c.automata.join(', ')} (priorities: ${c.priorities.join(', ')})`);
+                            }, (i + 1) * 200);
+                        });
+                    }
+                } else {
+                    say('Conflict detection unavailable');
+                }
+            }
+        });
+    }
+};
+<code
