@@ -160,3 +160,16 @@ console.log('Conflicts:', loader.getConflicts());
 ```
 
 If `loader.list()` is empty, inspect network requests and ensure your `.atpk` syntax matches the format above.
+
+## Optional add-on: Batteries
+
+Track device charge cycles and get **AkariNet UI notifications** (not chat) when a battery is due:
+
+1. Open the app: [batteries.html](https://76836.github.io/batteries.html)
+2. In Automaton Manager → add package URL:
+
+```
+https://76836.github.io/batteries.atpk
+```
+
+Data is stored in `localStorage` key `batteries_v1` on the page origin. On `76836.github.io` the app and AkariNet share the same store.
